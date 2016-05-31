@@ -1,4 +1,4 @@
-package com.adoregeek.rxdemo;
+package com.adoregeek.rxdemo.functions.weather;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -9,9 +9,10 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.adoregeek.rxdemo.R;
+
 import rx.Observable;
 import rx.Observer;
-import rx.Scheduler;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
