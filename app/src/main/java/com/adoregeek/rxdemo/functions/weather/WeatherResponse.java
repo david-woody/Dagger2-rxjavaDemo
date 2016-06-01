@@ -1,32 +1,15 @@
 package com.adoregeek.rxdemo.functions.weather;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Administrator on 2016/5/30.
  */
 public class WeatherResponse {
-    @Override
-    public String toString() {
-        return "WeatherResponse{" +
-                "coord=" + coord +
-                ", sys=" + sys +
-                ", weathers=" + weathers +
-                ", base='" + base + '\'' +
-                ", main=" + main +
-                ", wind=" + wind +
-                ", rain=" + rain +
-                ", clouds=" + clouds +
-                ", id=" + id +
-                ", dt=" + dt +
-                ", name='" + name + '\'' +
-                ", cod=" + cod +
-                '}';
-    }
-
     public Coordinates coord;
     public Local sys;
-    public List<Weather> weathers;
+    public List<Weather> weather;
     public String base;
     public Main main;
     public Wind wind;
@@ -36,6 +19,7 @@ public class WeatherResponse {
     public long dt;
     public String name;
     public int cod;
+
     public static class Coordinates {
         public double lat;
         public double lon;

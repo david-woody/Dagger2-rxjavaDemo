@@ -21,20 +21,21 @@ public class WeatherApiProducerModule {
     @Provides
     OkHttpClient providesOkHttpClient() {
         OkHttpClient.Builder okClient = new OkHttpClient().newBuilder();
-        if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-            okClient.addInterceptor(logging);
-        }
-        okClient.connectTimeout(60 * 1000, TimeUnit.MILLISECONDS)
-                .readTimeout(60 * 1000, TimeUnit.MILLISECONDS);
+//        if (BuildConfig.DEBUG) {
+//            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+//            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+//            okClient.addInterceptor(logging);
+//        }
+//        okClient.connectTimeout(60 * 1000, TimeUnit.MILLISECONDS)
+//                .readTimeout(60 * 1000, TimeUnit.MILLISECONDS);
         return okClient.build();
     }
 
     @Provides
     Retrofit providesRetrofitAdapter(OkHttpClient okHttpClient) {
         Retrofit.Builder retrofitAdapter = new Retrofit.Builder();
-        retrofitAdapter.client(okHttpClient)
+//        .client(okHttpClient)
+        retrofitAdapter
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl("http://api.openweathermap.org/data/2.5/");
