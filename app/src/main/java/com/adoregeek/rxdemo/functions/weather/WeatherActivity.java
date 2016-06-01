@@ -11,15 +11,27 @@ import android.view.MenuItem;
 
 import com.adoregeek.rxdemo.R;
 
+import javax.inject.Inject;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.plugins.RxJavaErrorHandler;
+import rx.plugins.RxJavaPlugins;
 import rx.schedulers.Schedulers;
 
-public class MainActivity extends AppCompatActivity {
+public class WeatherActivity extends AppCompatActivity {
+    @Inject
+    WeatherManager weatherManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,58 +40,108 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         initRx();
+        DaggerWeatherComponent.create().inject(this);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler() {
+            @Override
+            public void handleError(Throwable e) {
+                Log.w("Error", e);
+            }
+        });
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
 //                observable.subscribe(observer);
-                String[] name=new String[]{
-                        "Woody","David","Hellen","Kelly"
-                };
-                Observable.from(name)
-                        .subscribe(new Action1<String>() {
-                            @Override
-                            public void call(String s) {
-                                Log.e("OnNext", "Item=" + s);
-                            }
-                        }, new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-
-                            }
-                        }, new Action0() {
-                            @Override
-                            public void call() {
-                                Log.e("onComplete","Oncomplete！");
-                            }
-                        });
-                Observable.just(1,2,3,4)
+//                String[] name = new String[]{
+//                        "Woody", "David", "Hellen", "Kelly"
+//                };
+//                Observable.from(name)
+//                        .subscribe(new Action1<String>() {
+//                            @Override
+//                            public void call(String s) {
+//                                Log.e("OnNext", "Item=" + s);
+//                            }
+//                        }, new Action1<Throwable>() {
+//                            @Override
+//                            public void call(Throwable throwable) {
+//
+//                            }
+//                        }, new Action0() {
+//                            @Override
+//                            public void call() {
+//                                Log.e("onComplete", "Oncomplete！");
+//                            }
+//                        });
+//                Observable.just(1, 2, 3, 4)
+//                        .subscribeOn(Schedulers.io())
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(new Subscriber<Integer>() {
+//                            @Override
+//                            public void onCompleted() {
+//                                Log.e("onCompleted", "onCompleted");
+//                            }
+//
+//                            @Override
+//                            public void onError(Throwable e) {
+//
+//                            }
+//
+//                            @Override
+//                            public void onNext(Integer integer) {
+//                                Log.e("onNext", "Num=" + integer);
+//                            }
+//                        });
+//                test();
+                weatherManager.getWeatherByCityId("WuXi")
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Subscriber<Integer>() {
+                        .subscribe(new Observer<WeatherResponse>() {
                             @Override
                             public void onCompleted() {
-                                Log.e("onCompleted","onCompleted");
+                                Log.e("WeatherTag", "onCompleted");
                             }
 
                             @Override
                             public void onError(Throwable e) {
-
+                                Log.e("WeatherTag", "onError");
                             }
 
                             @Override
-                            public void onNext(Integer integer) {
-                                Log.e("onNext","Num="+integer);
+                            public void onNext(WeatherResponse weatherResponse) {
+                                Log.e("WeatherTag", "Weather=" + weatherResponse.toString());
                             }
                         });
             }
         });
     }
+
+    private void test() {
+        Retrofit.Builder retrofitAdapter = new Retrofit.Builder();
+        TESTApiService weatherApiService = retrofitAdapter
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("http://api.openweathermap.org/data/2.5/").build().create(TESTApiService.class);
+        Call<WeatherResponse> call = weatherApiService.getWeather("WuXi","aaacbd36b8f88a65d3c0aa4e8294a8a0");
+        call.enqueue(new Callback<WeatherResponse>() {
+            @Override
+            public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
+                WeatherResponse weatherResponse = response.body();
+                System.out.println("====>>"+weatherResponse.toString());
+            }
+
+            @Override
+            public void onFailure(Call<WeatherResponse> call, Throwable t) {
+
+            }
+        });
+    }
+
+
     Observer<String> observer;
     Observable observable;
     Subscriber<String> subscriber;
+
     private void initRx() {
         observer = new Observer<String>() {
             @Override
@@ -98,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        subscriber= new Subscriber<String>() {
+        subscriber = new Subscriber<String>() {
             @Override
             public void onCompleted() {
 
@@ -121,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         String[] from = new String[]{
                 "Hello!", "Woody!", "This is RxAndroid!"
         };
-        observable  =Observable.from(from);
+        observable = Observable.from(from);
 //        Observable observable=Observable.just("Hello!","woody!","This is RxAndroid!");
 //        Observable observable= Observable.create(new Observable.OnSubscribe<String>() {
 //            @Override
