@@ -1,5 +1,7 @@
 package com.adoregeek.rxdemo.functions.weather;
 
+import android.graphics.Bitmap;
+
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;

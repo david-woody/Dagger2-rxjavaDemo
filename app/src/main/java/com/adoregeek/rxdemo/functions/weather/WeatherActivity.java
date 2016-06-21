@@ -1,18 +1,24 @@
 package com.adoregeek.rxdemo.functions.weather;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
-import android.view.MenuItem;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.adoregeek.rxdemo.R;
+import com.bumptech.glide.Glide;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -23,34 +29,32 @@ import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.plugins.RxJavaErrorHandler;
-import rx.plugins.RxJavaPlugins;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 public class WeatherActivity extends AppCompatActivity {
     @Inject
     WeatherManager weatherManager;
+    @BindView(R.id.tvInfo)
+    TextView tvInfo;
+    @BindView(R.id.etInput)
+    EditText etInput;
+    @BindView(R.id.btQuery)
+    Button btQuery;
+    @BindView(R.id.ivWeatherIcon)
+    ImageView ivWeatherIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        ButterKnife.bind(this);
         initRx();
         DaggerWeatherComponent.create().inject(this);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        RxJavaPlugins.getInstance().registerErrorHandler(new RxJavaErrorHandler() {
-            @Override
-            public void handleError(Throwable e) {
-                Log.w("Error", e);
-            }
-        });
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
 //                observable.subscribe(observer);
@@ -94,27 +98,8 @@ public class WeatherActivity extends AppCompatActivity {
 //                            }
 //                        });
 //                test();
-                weatherManager.getWeatherByCityId("WuXi")
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Observer<WeatherResponse>() {
-                            @Override
-                            public void onCompleted() {
-                                Log.e("WeatherTag", "onCompleted");
-                            }
-
-                            @Override
-                            public void onError(Throwable e) {
-                                Log.e("WeatherTag", "onError");
-                            }
-
-                            @Override
-                            public void onNext(WeatherResponse weatherResponse) {
-                                Log.e("WeatherTag", "Weather=" + weatherResponse.toString());
-                            }
-                        });
-            }
-        });
+//            }
+//        });
     }
 
     private void test() {
@@ -122,12 +107,12 @@ public class WeatherActivity extends AppCompatActivity {
         TESTApiService weatherApiService = retrofitAdapter
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl("http://api.openweathermap.org/data/2.5/").build().create(TESTApiService.class);
-        Call<WeatherResponse> call = weatherApiService.getWeather("WuXi","aaacbd36b8f88a65d3c0aa4e8294a8a0");
+        Call<WeatherResponse> call = weatherApiService.getWeather("WuXi", "aaacbd36b8f88a65d3c0aa4e8294a8a0");
         call.enqueue(new Callback<WeatherResponse>() {
             @Override
             public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
                 WeatherResponse weatherResponse = response.body();
-                System.out.println("====>>"+weatherResponse.toString());
+                System.out.println("====>>" + weatherResponse.toString());
             }
 
             @Override
@@ -184,37 +169,60 @@ public class WeatherActivity extends AppCompatActivity {
                 "Hello!", "Woody!", "This is RxAndroid!"
         };
         observable = Observable.from(from);
-//        Observable observable=Observable.just("Hello!","woody!","This is RxAndroid!");
-//        Observable observable= Observable.create(new Observable.OnSubscribe<String>() {
-//            @Override
-//            public void call(Subscriber<? super String> subscriber) {
-//                subscriber.onNext("Hello!");
-//                subscriber.onNext("Woody!");
-//                subscriber.onNext("This is RxAndroid!");
-//                subscriber.onCompleted();
-//            }
-//        });
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+    @OnClick(R.id.btQuery)
+    public void onClick() {
+        getAllWeather();
+    }
 
-        return super.onOptionsItemSelected(item);
+    private void getAllWeather() {
+        weatherManager.getWeatherByCityId("1790923")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<WeatherResponse>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onNext(WeatherResponse weatherResponse) {
+                        System.out.println("ImageUrl="+String.format(WeatherApiService.BaseImageUrl,weatherResponse.weather.get(0).icon));
+                        Glide.with(WeatherActivity.this).load(String.format(WeatherApiService.BaseImageUrl,weatherResponse.weather.get(0).icon)).into(ivWeatherIcon);
+                    }
+                });
+    }
+
+    private void getWeather() {
+        weatherManager.getWeatherByCityId("1790923")
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<WeatherResponse>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.e("WeatherTag", "onCompleted");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("WeatherTag", "onError");
+                    }
+
+                    @Override
+                    public void onNext(WeatherResponse weatherResponse) {
+                        Log.e("WeatherTag", "Weather=" + weatherResponse.toString());
+                    }
+                });
     }
 }
